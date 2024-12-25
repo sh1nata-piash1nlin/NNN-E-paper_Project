@@ -181,59 +181,57 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
 
-//Function to prepare data and send it to the server
-    function prepareDataAndSend() {
-        if (!editor) {
-            console.error('Froala editor is not initialized.');
-            return;
-        }
-
-        // Get the content from the Froala editor
-        const editorContent = editor.html.get(); // This returns the HTML content
-        const title = document.getElementById('article-title').value;
-        const abstract = document.querySelector('input[name="abstract"]').value;
-        const category_id = document.querySelector('select[name="category_id"]').value;
-        const premium = document.querySelector('input[name="premium"]').checked ? true : false;
-
-
-
-        // Log the content to check if it's correct
-        console.log('Editor content:', editorContent);
-        console.log('Title:', title);
-        console.log('Abstract:', abstract);
-
-
-        const articleData = {
-            title: title,             // Title from the form
-            abstract: abstract,       // Abstract from the form
-            editorContent: editorContent, // Content from the Froala editor
-            category_id: category_id,           // Example category ID
-            author_id: 1,             // Example author ID
-            status: 'draft',          // Default status
-            featured_image: null,     // Optional featured image, can be null or added as needed
-            premium:premium
-        };
-
-        // Send the data to the server via a POST request
-        fetch('/writer/save', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(articleData),  // Send the article data as JSON
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                console.log('Data saved successfully:', data);
-            })
-            .catch((error) => {
-                console.error('Error saving data:', error);
-            });
+// Function to prepare data and send it to the server
+function prepareDataAndSend() {
+    if (!editor) {
+        console.error('Froala editor is not initialized.');
+        return;
     }
-   
+
+    // Get the content from the Froala editor
+    const editorContent = editor.html.get(); // This returns the HTML content
+    const title = document.getElementById('article-title').value;
+    const abstract = document.querySelector('input[name="abstract"]').value;
+    const category_id = document.querySelector('select[name="category_id"]').value;
+    const premium = document.querySelector('input[name="premium"]').checked ? true : false;
+
+
+
+    // Log the content to check if it's correct
+    console.log('Editor content:', editorContent);
+    console.log('Title:', title);
+    console.log('Abstract:', abstract);
+
+
+    const articleData = {
+        title: title,             // Title from the form
+        abstract: abstract,       // Abstract from the form
+        editorContent: editorContent, // Content from the Froala editor
+        category_id: category_id,           // Example category ID
+        author_id: 1,             // Example author ID
+        status: 'draft',          // Default status
+        featured_image: null,     // Optional featured image, can be null or added as needed
+        premium:premium
+    };
+
+    // Send the data to the server via a POST request
+    fetch('/writer/save', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(articleData),  // Send the article data as JSON
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            console.log('Data saved successfully:', data);
+        })
+        .catch((error) => {
+            console.error('Error saving data:', error);
+        });
+}
+
 // Event listener to trigger the send function (example: on button click)
 document.getElementById('save-button').addEventListener('click', prepareDataAndSend);
 
-
 });
-

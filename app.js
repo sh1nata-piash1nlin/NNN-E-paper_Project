@@ -10,7 +10,7 @@ const { engine } = require('express-handlebars'); // Import express-handlebars
 const session = require('express-session');
 
 const adminRoutes = require('./src/routes/admin.route');
-const writerRoutes = require('./src/routes/writer.route');
+
 const editorRoutes = require('./src/routes/editor.route');
 const exphbs = require('express-handlebars');
 const dayjs = require('dayjs');
@@ -110,6 +110,7 @@ connectDB();
 
 
 //Routes
+const writerRoutes = require('./src/routes/writer.route.js');
 app.use('/', writerRoutes);
 
 app.use('/', guestRoutes);
