@@ -28,7 +28,7 @@ async function getCategories() {
 
 async function getFeaturedArticles(page = 1) {
     try {
-        const limit = 5;
+        const limit = 10;
         const offset = (page - 1) * limit;
 
         // Get total count
@@ -268,7 +268,7 @@ async function getCategoryArticles(req, res) {
     try {
         const categoryId = req.params.id;
         const page = parseInt(req.query.page) || 1;
-        const limit = 5;
+        const limit = 10;
         const offset = (page - 1) * limit;
         const isSubscriber = req.session.authUser?.role === 'subscriber';
 
@@ -466,7 +466,7 @@ async function searchArticles(req, res) {
     try {
         const searchTerm = req.query.q;
         const page = parseInt(req.query.page) || 1;
-        const limit = 5;
+        const limit = 10;
         const offset = (page - 1) * limit;
         const isSubscriber = req.session.authUser?.role === 'subscriber';
 
@@ -713,7 +713,6 @@ async function addComment(req, res) {
             const baseUrl = isSubscriber ? '/subscriber/article/' : '/article/';
             res.redirect(baseUrl + article_id);
         }
-        //all merged
 
     } catch (error) {
         console.error('Error in addComment:', error);

@@ -71,4 +71,3 @@ async function renderHomepage(req, res) {
 module.exports = {
     renderHomepage,
 };
-//All merged and finished
