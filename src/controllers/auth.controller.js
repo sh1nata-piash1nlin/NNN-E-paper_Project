@@ -1,9 +1,7 @@
-
 const loginSuccess = () => {
 
 }
 
 module.exports = {
-    loginSuccess
-
+    loginSuccess 
 }
