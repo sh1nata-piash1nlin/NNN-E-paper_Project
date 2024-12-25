@@ -87,3 +87,14 @@ CREATE TABLE Subscriptions (
 );
 ALTER TABLE Articles
 ADD COLUMN featured BOOLEAN DEFAULT FALSE;
+
+CREATE TABLE Editor_Categories (
+    editor_id INT,
+    category_id INT,
+    assigned_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (editor_id, category_id),
+    FOREIGN KEY (editor_id) REFERENCES Users(id),
+    FOREIGN KEY (category_id) REFERENCES Categories(id)
+);
+
+ALTER TABLE premium ADD COLUMN status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending';
