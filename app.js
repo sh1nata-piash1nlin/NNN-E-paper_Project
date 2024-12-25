@@ -38,7 +38,10 @@ app.use(cors({
 const helpers = {
     eq: (a, b) => a === b,
     includes: (array, value) => Array.isArray(array) && array.includes(value),
-    formatDate: (date, format) => dayjs(date).format(format),
+    formatDate: (date) => {
+        if (!date) return '';  // Handle null/undefined dates
+        return dayjs(date).format('DD/MM/YYYY HH:mm');
+    }
     add: function(a, b) {
         return a + b;
     },
