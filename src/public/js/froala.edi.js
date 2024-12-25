@@ -235,4 +235,3 @@ document.addEventListener('DOMContentLoaded', function() {
 document.getElementById('edit-button').addEventListener('click', editprepareDataAndSend);
 
 });
-
