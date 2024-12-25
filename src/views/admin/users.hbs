@@ -278,5 +278,29 @@
             alert('Error rejecting draft');
         }
     }
+    async function approvePremiumRequest(requestId) {
+        if (!confirm('Are you sure you want to approve this premium request?')) {
+            return;
+        }
+        try {
+            const response = await fetch(`/admin/premium-requests/${requestId}/approve`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('Premium request approved successfully');
+                window.location.reload();
+            } else {
+                throw new Error(data.message || 'Failed to approve request');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error approving request: ' + error.message);
+        }
+    }
 </script>
