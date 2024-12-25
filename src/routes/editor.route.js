@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const editorService = require('../services/editor.service');
+const db = require('../utils/db');  // Import the Knex instance
 const dayjs = require('dayjs');
 
 const ensureAuthenticated = (req, res, next) => {
@@ -53,13 +54,25 @@ router.get('/editor/rejected',  ensureAuthenticated, async (req, res) => {
 
 //form 
 router.post('/editor/rejected',  async (req, res) => {
-  const { article_id, rejection_reason } = req.body;
+  const { article_id } = req.body;
 
   try {
-    // Call the service to reject the article
-    await editorService.rejectArticle(article_id, rejection_reason);
+    // Get the article title
+    const article = await db('Articles')
+        .select('title')
+        .where('id', article_id)
+        .first();
 
-    // Redirect back to the editor dashboard
+    // Update article status
+    await editorService.rejectArticle(article_id);
+
+    // Add to history using Knex
+    await db('editor_history').insert({
+        article_id: article_id,
+        article_name: article.title,
+        status: 'Rejected'
+    });
+
     res.redirect('/editor');
   } catch (err) {
     console.error(err);
@@ -109,6 +122,12 @@ router.post('/editor/edit-article', express.urlencoded({ extended: true }), asyn
     try {
         const { id, category_id, tags, updated_at } = req.body;
         
+        // Get the article title first
+        const article = await db('Articles')
+            .select('title')
+            .where('id', id)
+            .first();
+
         // Handle tags properly without JSON.parse
         let processedTags = [];
         if (Array.isArray(tags)) {
@@ -117,11 +136,19 @@ router.post('/editor/edit-article', express.urlencoded({ extended: true }), asyn
             processedTags = [tags];
         }
 
+        // Update the article
         const result = await editorService.updateArticle({
             id: parseInt(id),
             category_id: parseInt(category_id),
             tags: processedTags,
             updated_at
+        });
+
+        // Add to history using Knex with the correct title
+        await db('editor_history').insert({
+            article_id: id,
+            article_name: article.title,  // Use the fetched title
+            status: 'Accepted'
         });
 
         res.redirect('/editor');
@@ -185,5 +212,21 @@ router.get('/editor/editorPOV', ensureAuthenticated, async (req, res) => {
   }
 });
 
+
+
+router.get('/editor/history', ensureAuthenticated, async (req, res) => {
+  try {
+    const history = await editorService.getEditorHistory();
+    res.render('viewHistory', {
+      history,
+      isAuthenticated: req.session.isAuthenticated,
+      authUser: req.session.authUser,
+      layout: 'editor-layout'
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error fetching editor history.');
+  }
+});
 
 module.exports = router;
