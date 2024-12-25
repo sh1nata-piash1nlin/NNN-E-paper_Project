@@ -501,6 +501,89 @@ const adminController = {
             res.status(500).json({ success: false });
         }
     },
+    // Cập nhật getUsers để hiển thị thông tin premium
+    async getUsers(req, res) {
+        try {
+            const [users] = await db.execute(`
+                SELECT 
+                    u.id,
+                    u.email,
+                    u.full_name,
+                    u.role,
+                    u.created_at,
+                    p.start_day as premium_start_date,
+                    p.status as premium_status,
+                    p.id as premium_id
+                FROM Users u
+                LEFT JOIN premium p ON u.id = p.user_id
+                ORDER BY u.created_at DESC
+            `);
+
+            const [pendingPremiumRequests] = await db.execute(`
+                SELECT 
+                    p.id,
+                    p.user_id,
+                    p.start_day,
+                    u.email,
+                    u.full_name
+                FROM premium p
+                JOIN Users u ON p.user_id = u.id
+                WHERE p.status = 'pending'
+            `);
+
+            res.render('admin/users', {
+                layout: 'admin',
+                users,
+                pendingPremiumRequests
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false });
+        }
+    },
+    // Thêm function xử lý premium request
+    async approvePremiumRequest(req, res) {
+        try {
+            const { requestId } = req.params;
+
+            // Lấy thông tin request
+            const [request] = await db.execute(
+                'SELECT user_id FROM premium WHERE id = ?',
+                [requestId]
+            );
+
+            if (!request.length) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Premium request not found'
+                });
+            }
+
+            // Cập nhật trạng thái premium
+            await db.execute(
+                'UPDATE premium SET status = "approved" WHERE id = ?',
+                [requestId]
+            );
+
+            // Cập nhật role của user thành subscriber
+            await db.execute(
+                'UPDATE Users SET role = "subscriber" WHERE id = ?',
+                [request[0].user_id]
+            );
+
+            res.json({
+                success: true,
+                message: 'Premium request approved successfully'
+            });
+        } catch (error) {
+            console.error('Error in approvePremiumRequest:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error approving premium request'
+            });
+        }
+    }
+
 };
 
 module.exports = adminController;
