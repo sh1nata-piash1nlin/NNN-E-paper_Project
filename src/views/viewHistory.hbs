@@ -1,0 +1,248 @@
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom sticky-top">
+  <div class="container">
+    <a class="navbar-brand">
+      <div class="logo-text">NNN</div>
+    </a>
+    <div class="d-flex align-items-center">
+      <a href="/editor" class="back-button me-3">
+        <i class="bi bi-arrow-left"></i>
+        <span>Back to Dashboard</span>
+      </a>
+      {{#if isAuthenticated}}
+        <div class="dropdown">
+          <img 
+            src="{{authUser.avatar}}"
+            onerror="this.onerror=null; this.src='/static/img/default.png';"
+            alt="User Avatar"
+            class="rounded-circle"
+            style="width: 40px; height: 40px; cursor: pointer;"
+            id="navbarDropdownAvatar"
+            role="button"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+          <div class="dropdown-menu dropdown-menu-right">
+            <a class="dropdown-item" href="/profile-editor">Trang cá nhân</a>
+            <div class="dropdown-divider"></div>
+            <form action="/logout" method="POST">
+              <button type="submit" class="dropdown-item text-danger">Đăng xuất</button>
+            </form>
+          </div>
+        </div>
+      {{else}}
+        <a class="btn btn-outline-dark btn-sm" href="/login">Đăng nhập</a>
+      {{/if}}
+    </div>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container my-4">
+  <div class="dashboard-header mb-4">
+    <h1 class="dashboard-title">
+      <i class="fas fa-history"></i>
+      Editor History
+    </h1>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead class="thead-light">
+        <tr>
+          <th>Article</th>
+          <th>Author</th>
+          <th>Category</th>
+          <th>Status</th>
+          <th>Action Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each history}}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center">
+                <img 
+                  src="{{this.featured_image}}" 
+                  alt="Article thumbnail"
+                  class="mr-2"
+                  style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;"
+                  onerror="this.src='/static/img/default.png'"
+                >
+                <a href="/editor/article?id={{this.article_id}}">{{this.article_name}}</a>
+              </div>
+            </td>
+            <td>{{this.author_name}}</td>
+            <td>{{this.category_name}}</td>
+            <td>
+              {{#if (eq this.status "Accepted")}}
+                <span class="badge badge-success">Accepted</span>
+              {{else}}
+                <span class="badge badge-danger">Rejected</span>
+              {{/if}}
+            </td>
+            <td>{{formatDate this.action_date}}</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+  /* Back Button */
+  .back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background-color: #f8fafc;
+    border-radius: 12px;
+    color: #475569;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 500;
+  }
+
+  .back-button:hover {
+    background-color: #e2e8f0;
+    color: #1a73e8;
+    transform: translateX(-3px);
+    text-decoration: none;
+  }
+
+  /* Table Styles */
+  .table {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .table td, .table th {
+    vertical-align: middle;
+  }
+
+  /* Badge Styles */
+  .badge {
+    padding: 8px 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 20px;
+  }
+  
+  .badge-success {
+    background-color: #28a745 !important;
+    color: white !important;
+  }
+  
+  .badge-danger {
+    background-color: #dc3545 !important;
+    color: white !important;
+  }
+
+  /* Dashboard Header */
+  .dashboard-header {
+    background: linear-gradient(135deg, #1a73e8, #0d47a1);
+    color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px rgba(26, 115, 232, 0.1);
+  }
+
+  .dashboard-title {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .dashboard-title i {
+    font-size: 2rem;
+  }
+
+  /* Logo Styling */
+  .logo-text {
+    font-family: 'Arial Black', Helvetica, sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    background: linear-gradient(45deg, #1a1a1a, #4a4a4a);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 5px 10px;
+    border: 3px solid #1a1a1a;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .logo-text:hover {
+    border-color: #1a73e8;
+    background: linear-gradient(45deg, #1a73e8, #0d47a1);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+
+  /* Dropdown Menu */
+  .dropdown-menu {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    min-width: 180px;
+    overflow: hidden;
+  }
+
+  .dropdown-item {
+    padding: 10px 15px;
+    color: #333;
+    transition: all 0.2s;
+  }
+
+  .dropdown-item:hover {
+    background-color: #f5f5f5;
+    color: #007bff;
+  }
+
+  .dropdown-item.text-danger:hover {
+    background-color: #fceaea;
+    color: #dc3545;
+  }
+
+  /* Table Row Hover */
+  .table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+    transition: background-color 0.2s;
+  }
+
+  /* Article Link */
+  .table a {
+    color: #1a73e8;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .table a:hover {
+    color: #0d47a1;
+    text-decoration: underline;
+  }
+
+  /* Article Thumbnail */
+  .article-thumbnail {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 1rem;
+  }
+
+  /* Status Badge Container */
+  td .badge {
+    display: inline-block;
+    min-width: 100px;
+    text-align: center;
+  }
+</style>
