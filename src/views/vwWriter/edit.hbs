@@ -1,0 +1,66 @@
+
+{{#section 'css'}}
+ <!-- Include Froala CSS -->
+    <link rel="stylesheet" href="/froala/css/froala_editor.pkgd.min.css">
+    <link rel="stylesheet" href="/froala/css/froala_style.min.css">
+    <!-- Include jQuery (required by Froala Editor) -->
+    {{!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
+    
+
+{{/section}}
+
+{{#section 'js'}}
+ <!-- Include your custom JS file to initialize the Froala editor -->
+ <script type="text/javascript" src="/froala/js/froala_editor.pkgd.min.js"></script>
+    <script type="text/javascript"src="/js/froala.edi.js"></script>
+
+    
+{{/section}}
+
+
+<div class="container mt-4">
+    <h1 class="text-muted mb-4 text-center">Edit Article</h1>
+    <form id="edit-article-form" action="/writer/edit" method="POST">
+        <div class="card mt-4">
+            <div class="card-body">
+                <h4 class="card-title">Title</h4>
+                    <input class="visually-hidden" name="id" value="{{article.id}}"></input>                <!-- Insert the article title into the input field -->
+                <input type="text" class="form-control" id="article-title" name="title" value="{{article.title}}" placeholder="Enter the article title" required>
+            </div>
+        </div>
+
+        <div class="card mt-4 mb-4">
+            <div class="card-body">
+                <h4 class="card-title">Abstract</h4>
+                <!-- Insert the article abstract into the input field -->
+                <input type="text" class="form-control" name="abstract" value="{{article.abstract}}" placeholder="Enter the article abstract">
+            </div>
+        </div>
+
+        <div id="froala-editor" name="editorContent">{{{article.content}}}</div> <!-- Populate the Froala editor with article content -->
+
+        <!-- Display category as text (category_id not editable) -->
+        <div class="card mt-4 mb-4">
+            <div class="card-body">
+                <h4 class="card-title">Category</h4>
+                <input type="hidden" name="category_id" value="{{article.category_id}} ">
+                <!-- Display category name as text -->
+                <p class="form-control-plaintext">{{article.category_name}}</p>
+            </div>
+        </div>
+
+        <div class="card mt-4 mb-4 border-primary">
+            <div class="card-body">
+                <h4 class="card-title text-warning">Premium Article</h4>
+                <div class="form-check">
+                    <!-- Check if the article is premium -->
+                    <input type="checkbox" class="form-check-input" id="premium" name="premium" value="true" {{#if article.is_premium}}checked{{/if}}>
+                    <label class="form-check-label" for="premium">Mark as premium</label>
+                </div>
+                <small class="form-text text-muted">Selecting this option will mark the article as premium and highlight it on the platform.</small>
+            </div>
+        </div>
+
+        <button id="edit-button" type="button" class="btn btn-outline-primary btn-lg">Save Content</button>
+    </form>
+</div>

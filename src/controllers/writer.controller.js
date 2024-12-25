@@ -70,7 +70,6 @@ async function getArticles() {
             FROM articles
             JOIN categories ON articles.category_id = categories.id
         `;
-
         const [articles] = await connection.execute(query);
 
         // Truncate content if it's too long
@@ -98,27 +97,29 @@ async function getArticleById(articleId) {
 
         // SQL query to retrieve article details along with category and author info
         const articleQuery = `
-            SELECT 
-                articles.id, 
-                articles.title, 
-                articles.abstract, 
-                articles.content, 
-                articles.status, 
-                articles.is_premium, 
-                articles.author_id, 
-                DATE_FORMAT(articles.created_at, '%Y-%m-%d %H:%i:%s') AS publish_date,
-                categories.name AS category_name,
-                users.name AS author_name,
-                articles.featured_image
-            FROM articles
-            JOIN categories ON articles.category_id = categories.id
-            JOIN users ON articles.author_id = users.id
-            WHERE articles.id = ?
+        SELECT 
+            articles.id, 
+            articles.title, 
+            articles.abstract, 
+            articles.content, 
+            articles.status, 
+            articles.is_premium, 
+            articles.author_id, 
+            articles.category_id,
+            DATE_FORMAT(articles.created_at, '%Y-%m-%d %H:%i:%s') AS publish_date,
+            categories.name AS category_name,
+            users.full_name AS author_name,  
+            users.pen_name AS author_pen_name, 
+            articles.featured_image
+        FROM articles
+        JOIN categories ON articles.category_id = categories.id
+        LEFT JOIN users ON articles.author_id = users.id
+        WHERE articles.id = ?
         `;
         const [articles] = await connection.execute(articleQuery, [articleId]);
 
         if (articles.length === 0) {
-            return null; // No article found
+            return { article: null, comments: [] }; // Ensure a consistent object structure
         }
 
         const article = articles[0];
@@ -126,11 +127,15 @@ async function getArticleById(articleId) {
         // SQL query to fetch comments for the article
         const commentsQuery = `
             SELECT 
-                comments.user_name, 
+                comments.id, 
                 comments.comment_text, 
-                DATE_FORMAT(comments.created_at, '%Y-%m-%d %H:%i:%s') AS comment_date
+                comments.comment_date, 
+                users.full_name AS commenter_name,  
+                users.pen_name AS commenter_pen_name  
             FROM comments
+            JOIN users ON comments.user_id = users.id
             WHERE comments.article_id = ?
+            ORDER BY comments.comment_date DESC  
         `;
         const [comments] = await connection.execute(commentsQuery, [articleId]);
 
@@ -143,9 +148,55 @@ async function getArticleById(articleId) {
     }
 }
 
+async function editArticle(article) {
+    let connection;
+    try {
+        connection = await pool.getConnection();
+
+        // SQL query to update article with all necessary fields, including featured_image and featured
+        const updateQuery = `
+    UPDATE Articles
+    SET 
+        title = ?, 
+        abstract = ?, 
+        content = ?, 
+        category_id = ?, 
+        is_premium = ?, 
+        featured_image = ?
+    WHERE id = ?
+`;
+
+
+        // Execute the update query with all the required fields
+        const result = await connection.execute(updateQuery, [
+            article.title, 
+            article.abstract, 
+            article.content, 
+            article.category_id, 
+            article.premium, 
+            article.featured_image,  // this is the image path or URL
+            article.id
+        ]);
+
+        // Check if the update was successful
+        if (result.affectedRows === 0) {
+            return { success: false, message: 'Article not found or update failed' };
+        }
+
+        return { success: true };
+    } catch (err) {
+        console.error('Error saving article:', err);
+        throw err;
+    } finally {
+        if (connection) connection.release(); // Ensure connection is released
+    }
+}
+
+
 module.exports = {
     getCategories,
     saveArticle,
     getArticles,
-    getArticleById
+    getArticleById,
+    editArticle
 };
