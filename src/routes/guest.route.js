@@ -404,5 +404,3 @@ router.get('/search', articleController.searchArticles);
 router.post('/articles/comments', articleController.addComment);
 
 module.exports = router;
-
-//Merged successfully by Duong

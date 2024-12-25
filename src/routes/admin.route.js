@@ -25,13 +25,75 @@ const storage = multer.diskStorage({
         cb(null, 'public/uploads/')
     },
     filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname))
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+        cb(null, uniqueSuffix + '-' + file.originalname)
     }
 });
-const upload = multer({ storage: storage });
+const upload = multer({ 
+    storage: storage,
+    fileFilter: function (req, file, cb) {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Not an image! Please upload an image.'), false);
+        }
+    }
+});
 // Articles routes
 router.get('/articles', adminController.getArticles);
-router.post('/articles', upload.single('featuredImage'), adminController.addArticle);
+router.post('/articles', upload.single('featured_image'), async (req, res) => {
+    try {
+        const {
+            title,
+            abstract,
+            content,
+            category_id,
+        } = req.body;
+
+        // Xử lý featured image nếu có
+        const featured_image = req.file ? `/uploads/${req.file.filename}` : null;
+
+        // Sử dụng execute thay vì insert
+        const [result] = await db.execute(
+            `INSERT INTO articles (
+                title,
+                abstract,
+                content,
+                category_id,
+                featured_image,
+                status,
+                author_id,
+                publish_date,
+                created_at,
+                updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                title,
+                abstract,
+                content,
+                category_id,
+                featured_image,
+                'published',
+                req.session.authUser.id,
+                new Date(),
+                new Date(),
+                new Date()
+            ]
+        );
+
+        res.json({ 
+            success: true,
+            message: 'Article created successfully',
+            articleId: result.insertId
+        });
+    } catch (error) {
+        console.error('Error creating article:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error creating article' 
+        });
+    }
+});
 router.get('/articles/:id', adminController.getArticleById);
 router.put('/articles/:id', upload.single('featuredImage'), adminController.updateArticle);
 router.delete('/articles/:id', adminController.deleteArticle);
