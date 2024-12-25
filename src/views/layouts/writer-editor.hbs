@@ -87,59 +87,57 @@
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-                <img src="" alt="NNN">
-                
+   <nav class="navbar navbar-expand-lg bg-light border-bottom sticky-top mb-1" style="box-shadow: 1px 2px 6px 1px rgba(0, 0, 0, 0.1);">
+    <div class="container">
+        <a class="navbar-brand" href="{{#if isSubscriber}}/subscriber{{else}}/{{/if}}">
+                <div class="logo-text">NNN</div>
             </a>
 
-            <div class="d-flex align-items-center">
-                <div class="me-3">Mới nhất</div>
-                <div class="me-3">International</div>
-                <a class="btn btn-outline-dark btn-sm" href="/login">Login</a>
-                {{!-- <div> 
-                    <a class="btn btn-sm btn-primary" href="/login" role="button">
-                        <i class="bi bi-hand-index"> Login </i>
-                </div> --}}
-            </div>
-        </div>
-    </nav>
+        <!-- Navbar Toggler for mobile -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-    <!-- Secondary Navbar -->
-    <nav class="navbar navbar-expand-lg bg-white border-bottom py-0">
-        <div class="container">
-            <div class="navbar-collapse">
-                <ul class="navbar-nav main-nav d-flex justify-content-evenly w-100">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">
-                            <i class="bi bi-house-door home-icon"></i>
-                        </a>
-                    </li>
-                    {{#each categories}}
-                    <li class="nav-item dropdown">
-                        <!-- Hiển thị danh mục cha -->
-                        <a class="nav-link dropdown-toggle" href="{{this.link}}" id="navbarDropdown{{this.id}}"
-                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            {{this.name}}
-                        </a>
-                        {{#if this.subcategories.length}}
-                        <!-- Chỉ hiển thị dropdown khi có danh mục con -->
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown{{this.id}}">
-                            {{#each this.subcategories}}
-                            <li><a class="dropdown-item" href="{{this.link}}">{{this.name}}</a></li>
-                            {{/each}}
-                        </ul>
-                        {{/if}}
-                    </li>
-                    {{/each}}
-                </ul>
-            </div>
+        <!-- Navbar links, collapsible on smaller screens -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto d-flex justify-content-around w-100">
+                <li class="nav-item">
+                    <a class="nav-link" href="/writer">
+                        <i class="bi bi-vector-pen home-icon"></i>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/writer/view">
+                        <i class="bi bi-book home-icon"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/edit">
+                        <i class="bi bi-pencil-square"></i>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/writer/draft">
+                        <i class="bi bi-card-checklist home-icon"></i>
+                    </a>
+                </li>
+            </ul>
         </div>
-    </nav>
+
+        <!-- Login Button -->
+        <div class="d-flex align-items-center">
+            <a class="btn btn-outline-dark btn-sm" href="/login">Login</a>
+        </div>
+    </div>
+</nav>
+
+
+
 
     <!-- Main Content -->
-    <div class="container mt-4">
+    <div class="container p-3  " style="background-color:rgb(248, 249, 248); box-shadow:  1px 2px 12px 1px rgba(0, 0, 0, 0.1);">
         <div class="row">
             <!-- Main Content Column -->
             <div class="col-lg-8 " style="  box-shadow:  1px 2px 6px 1px rgba(0, 0, 0, 0.1);border-radius: 8px; ">
