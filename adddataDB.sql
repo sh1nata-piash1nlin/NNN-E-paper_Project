@@ -324,3 +324,18 @@ VALUES
 
 
 
+INSERT INTO Users (
+    username, 
+    password, 
+    email, 
+    full_name, 
+    role, 
+    subscription_expiry
+) VALUES (
+    'premium', 
+    '$2b$10$8DGMmKxaK8SrVkwxgTtJvuLwWGYxZPPWWrKaZtqDmZ3w7tXVFyaVe', -- password là "123456"
+    'premium@example.com',
+    'Premium User',
+    'subscriber',
+    DATE_ADD(NOW(), INTERVAL 7 DAY)
+);
