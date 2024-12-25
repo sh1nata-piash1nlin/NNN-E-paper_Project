@@ -5,7 +5,6 @@
   ![Node.js](https://img.shields.io/badge/Node.js-v16+-green.svg)
   ![Express](https://img.shields.io/badge/Express-v4.21-blue.svg)
   ![MySQL](https://img.shields.io/badge/MySQL-v8+-blue.svg)
-  ![License](https://img.shields.io/badge/license-MIT-yellow.svg)
 </div>
 
 ## 📑 Mục lục
@@ -233,7 +232,7 @@ GET /subscriber/profile      # Trang profile subscriber
 ```
 
 ## 🤝 Đóng góp
-Mọi đóng góp đều được chào đón! Vui lòng đọc [CONTRIBUTING.md](CONTRIBUTING.md) để biết thêm chi tiết.
+Mọi đóng góp đều được chào đón!
 
 ## 📄 License
 
