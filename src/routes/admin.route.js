@@ -49,4 +49,5 @@ router.post('/editor-categories/assign', adminController.assignEditorToCategory)
 router.delete('/editor-categories/remove/:editorId/:categoryId', adminController.removeEditorFromCategory);
 // Thêm route mới cho việc approve premium request
 router.post('/premium-requests/:requestId/approve', adminController.approvePremiumRequest);
+
 module.exports = router;
