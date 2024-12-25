@@ -1,0 +1,104 @@
+<div class="container-fluid mt-4"></div>
+<h2>Editor Category Management</h2>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Assigned Editors</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each categories}}
+                    <tr>
+                        <td>{{this.name}}</td>
+                        <td>
+                            {{#if this.editor_names}}
+                            {{this.editor_names}}
+                            {{else}}
+                            No editors assigned
+                            {{/if}}
+                        </td>
+                        <td>
+                            <button class="btn btn-primary btn-sm"
+                                onclick="showAssignModal('{{this.id}}', '{{this.name}}')">
+                                Assign Editor
+                            </button>
+                        </td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Assign Editor Modal -->
+<div class="modal fade" id="assignEditorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Assign Editor to Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="categoryId">
+                <div class="mb-3">
+                    <label class="form-label">Select Editor</label>
+                    <select class="form-select" id="editorSelect">
+                        <option value="">Choose an editor...</option>
+                        {{#each editors}}
+                        <option value="{{this.id}}">{{this.full_name}} ({{this.email}})</option>
+                        {{/each}}
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="assignEditor()">Assign</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showAssignModal(categoryId, categoryName) {
+        document.getElementById('categoryId').value = categoryId;
+        const modal = new bootstrap.Modal(document.getElementById('assignEditorModal'));
+        modal.show();
+    }
+
+    async function assignEditor() {
+        const categoryId = document.getElementById('categoryId').value;
+        const editorId = document.getElementById('editorSelect').value;
+
+        if (!editorId) {
+            alert('Please select an editor');
+            return;
+        }
+
+        try {
+            const response = await fetch('/admin/editor-categories/assign', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ editorId, categoryId })
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                throw new Error('Failed to assign editor');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error assigning editor');
+        }
+    }
+</script>
