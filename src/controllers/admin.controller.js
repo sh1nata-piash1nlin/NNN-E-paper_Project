@@ -442,7 +442,65 @@ const adminController = {
             console.error('Error in rejectDraft:', error);
             res.status(500).json({ success: false, message: 'Error rejecting draft' });
         }
-    }
+    },
+    async getEditorCategories(req, res) {
+        try {
+            // Lấy danh sách editors
+            const [editors] = await db.execute(`
+                SELECT id, email, full_name 
+                FROM Users 
+                WHERE role = 'editor'
+            `);
+
+            // Lấy danh sách categories và editors được phân công
+            const [categories] = await db.execute(`
+                SELECT c.*, 
+                       GROUP_CONCAT(u.id) as editor_ids,
+                       GROUP_CONCAT(u.full_name) as editor_names
+                FROM Categories c
+                LEFT JOIN Editor_Categories ec ON c.id = ec.category_id
+                LEFT JOIN Users u ON ec.editor_id = u.id
+                GROUP BY c.id
+            `);
+
+            res.render('admin/editor-categories', {
+                layout: 'admin',
+                editors,
+                categories
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            res.status(500).render('error', { message: 'Internal Server Error' });
+        }
+    },
+
+    async assignEditorToCategory(req, res) {
+        try {
+            const { editorId, categoryId } = req.body;
+            await db.execute(
+                'INSERT INTO Editor_Categories (editor_id, category_id) VALUES (?, ?)',
+                [editorId, categoryId]
+            );
+            res.json({ success: true });
+        } catch (error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false });
+        }
+    },
+
+    async removeEditorFromCategory(req, res) {
+        try {
+            const { editorId, categoryId } = req.params;
+            await db.execute(
+                'DELETE FROM Editor_Categories WHERE editor_id = ? AND category_id = ?',
+                [editorId, categoryId]
+            );
+            res.json({ success: true });
+        } catch (error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false });
+        }
+    },
 };
 
 module.exports = adminController;
