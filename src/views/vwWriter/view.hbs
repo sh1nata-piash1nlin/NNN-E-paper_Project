@@ -1,79 +1,120 @@
-
 {{#section 'css'}}
- 
-
+<style>
+    .status-badge {
+        font-size: 0.9em;
+        padding: 0.4em 0.8em;
+    }
+    .status-published { background-color: #28a745; }
+    .status-draft { background-color: #ffc107; }
+    .status-rejected { background-color: #dc3545; }
+    
+    .article-card {
+        transition: all 0.3s ease;
+    }
+    .article-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+</style>
 {{/section}}
 
 <div class="container mt-4">
-    <h1 class="text-muted mb-4 text-center">My Articles</h1>
+    <h1 class="text-center mb-4">My Articles</h1>
 
-    <!-- Check if there are articles to display -->
-    {{#if articles.length}}
-        <div class="row">
-            <!-- Loop through articles and display each as a card -->
-            {{#each articles}}
-                <div class="col-12 mb-4"> <!-- Each card takes up full width (one per row) -->
-                    <!-- Article Card -->
-                    <div class="card h-100 shadow-lg" style=" background-color: #f9f9f9;border-radius: 20px; "> <!-- Ensure card takes full height -->
-                        <!-- Card Header -->
-                        <div class="card-header bg-light text-dark d-flex justify-content-center align-items-center" style="height: 80px;">
-                            <h5 class="card-title text-center mb-0" style="font-size: 1.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                {{this.title}}
-                            </h5>
-                        </div>
-
-                        <!-- Card Body -->
-                        <div class="card-body">
-                            <!-- Abstract (with text truncation to avoid overflowing) -->
-                            <p class="card-text">
-                                <strong>Abstract:</strong>
-                                <span class="d-block text-truncate" style="max-width: 100%; overflow: hidden; white-space: nowrap;">
-                                    {{this.abstract}}
-                                </span>
-                            </p>
-                            <br>
-                            <!-- Content Preview (with HTML rendering) -->
-                            <p class="card-text" >
-                                <strong>Content Preview:</strong>
-                                <div class="bg-light" style=" box-shadow:  1px 2px 6px 2px rgba(0, 0, 0, 0.1);border-radius: 8px;">
-                                    <span class="d-block p-2 " >
-                                    {{{this.content}}} <!-- Use triple braces to render HTML content -->
-                                </span>
-                                </div>
-                               
-                            </p>
-                            
-                            <hr>
-                            <br>
-
-                            <!-- Category Name -->
-                            <p class="card-text"><strong>Category:</strong> {{this.category_name}}</p>
-
-                            <!-- Status & Premium -->
-                            <p class="card-text "><strong>Status:</strong> {{this.status}}</p>
-                            <p class="card-text">
-                                <strong>Premium:</strong>
-                                {{#if this.is_premium }}
-                                    <span class="badge bg-warning text-dark">Premium</span>
-                                {{else}}
-                                    <span class="badge bg-secondary">Regular</span>
-                                {{/if}}
-                            </p>
-
-                            <!-- Read more link -->
-                            <a href="/writer/articles/{{this.id}}" class="btn btn-outline-primary">Read More</a>
-                        </div>
-
-                        <!-- Card Footer -->
-                        <div class="card-footer text-muted">
-                            <p><strong>Author ID:</strong> {{this.author_id}}</p>
-                            <p><strong>Created At:</strong> {{this.created_at}}</p>
-                        </div>
-                    </div>
-                </div>
-            {{/each}}
+    {{#if empty}}
+        <div class="alert alert-info text-center">
+            You haven't written any articles yet. 
+            <a href="/writer" class="alert-link">Start writing now!</a>
         </div>
     {{else}}
-        <p>No articles found.</p>
+        <!-- Rejected Articles -->
+        {{#if groupedArticles.rejected}}
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Rejected Articles</h4>
+                </div>
+                <div class="card-body">
+                    {{#each groupedArticles.rejected}}
+                        <div class="article-card card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">{{this.title}}</h5>
+                                <p class="text-muted mb-2">
+                                    <small>Category: {{this.category_name}} | Created: {{this.formatted_date}}</small>
+                                </p>
+                                {{#if this.feedback}}
+                                    <div class="alert alert-warning">
+                                        <strong>Editor's Feedback:</strong> {{this.feedback}}
+                                    </div>
+                                {{/if}}
+                                <div class="btn-group">
+                                    <a href="/writer/edit/{{this.id}}" class="btn btn-primary btn-sm">
+                                        <i class="bi bi-pencil"></i> Edit & Resubmit
+                                    </a>
+                                    <a href="/writer/articles/{{this.id}}" class="btn btn-secondary btn-sm">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {{/each}}
+                </div>
+            </div>
+        {{/if}}
+
+        <!-- Draft Articles -->
+        {{#if groupedArticles.draft}}
+            <div class="card mb-4">
+                <div class="card-header bg-warning">
+                    <h4 class="mb-0">Pending Review</h4>
+                </div>
+                <div class="card-body">
+                    {{#each groupedArticles.draft}}
+                        <div class="article-card card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">{{this.title}}</h5>
+                                <p class="text-muted mb-2">
+                                    <small>Category: {{this.category_name}} | Submitted: {{this.formatted_date}}</small>
+                                </p>
+                                <div class="btn-group">
+                                    <a href="/writer/edit/{{this.id}}" class="btn btn-primary btn-sm">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+                                    <a href="/writer/articles/{{this.id}}" class="btn btn-secondary btn-sm">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {{/each}}
+                </div>
+            </div>
+        {{/if}}
+
+        <!-- Published Articles -->
+        {{#if groupedArticles.published}}
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">Published Articles</h4>
+                </div>
+                <div class="card-body">
+                    {{#each groupedArticles.published}}
+                        <div class="article-card card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">{{this.title}}</h5>
+                                <p class="text-muted mb-2">
+                                    <small>
+                                        Category: {{this.category_name}} | 
+                                        Published: {{this.formatted_publish_date}}
+                                    </small>
+                                </p>
+                                <a href="/writer/articles/{{this.id}}" class="btn btn-secondary btn-sm">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </div>
+                        </div>
+                    {{/each}}
+                </div>
+            </div>
+        {{/if}}
     {{/if}}
 </div>

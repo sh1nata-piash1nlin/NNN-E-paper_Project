@@ -1,53 +1,206 @@
-
 {{#section 'css'}}
- <!-- Include Froala CSS -->
-    <link rel="stylesheet" href="/froala/css/froala_editor.pkgd.min.css">
-    <link rel="stylesheet" href="/froala/css/froala_style.min.css">
-    <!-- Include jQuery (required by Froala Editor) -->
-    {{!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
-    
-
+    <!-- Include Froala CSS -->
+    <link href='https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css' rel='stylesheet'>
+    <link href='https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_style.min.css' rel='stylesheet'>
+    <style>
+        .fr-box {
+            margin-top: 10px;
+        }
+        .preview-image {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 10px;
+        }
+    </style>
 {{/section}}
 
 {{#section 'js'}}
- <!-- Include your custom JS file to initialize the Froala editor -->
- <script type="text/javascript" src="/froala/js/froala_editor.pkgd.min.js"></script>
-    <script src="/js/froala.js"></script>
-
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
+    <!-- Include Froala Editor JS -->
+    <script src='https://cdn.jsdelivr.net/npm/froala-editor@latest/js/froala_editor.pkgd.min.js'></script>
+    
+    <script>
+        // Khởi tạo biến để lưu instance của editor
+        let editor;
+
+        // Khởi tạo Froala Editor
+        document.addEventListener('DOMContentLoaded', function() {
+            editor = new FroalaEditor('#editorContent', {
+                height: 300,
+                placeholderText: 'Start writing your article...',
+                events: {
+                    'initialized': function() {
+                        console.log('Froala Editor initialized');
+                    }
+                }
+            });
+        });
+
+        // Xử lý form submission
+        document.getElementById('articleForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            try {
+                // Đảm bảo editor đã được khởi tạo
+                if (!editor) {
+                    throw new Error('Editor not initialized');
+                }
+
+                // Lấy nội dung từ Froala Editor
+                const content = editor.html.get();
+                console.log('Froala content:', content);
+
+                if (!content || content === '<p><br></p>') {
+                    throw new Error('Content is required');
+                }
+
+                // Gửi request với fetch
+                const response = await fetch('/writer/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: document.querySelector('input[name="title"]').value,
+                        abstract: document.querySelector('textarea[name="abstract"]').value,
+                        content: content,
+                        category_id: document.querySelector('select[name="category_id"]').value,
+                        is_premium: document.querySelector('input[name="is_premium"]').checked,
+                        youtube_url: document.querySelector('input[name="youtube_url"]')?.value || null
+                    })
+                });
+
+                const result = await response.json();
+                console.log('Server response:', result);
+                
+                if (!result.success) {
+                    throw new Error(result.message);
+                }
+
+                // Xử lý featured image riêng nếu có
+                if (document.querySelector('input[name="featured_image"]').files[0]) {
+                    const imageFormData = new FormData();
+                    imageFormData.append('featured_image', document.querySelector('input[name="featured_image"]').files[0]);
+                    
+                    await fetch('/writer/upload-image', {
+                        method: 'POST',
+                        body: imageFormData
+                    });
+                }
+
+                alert('Article saved successfully!');
+                window.location.href = '/writer/view';
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message || 'Failed to save article');
+            }
+        });
+
+        // Preview image function
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // YouTube preview function
+        function previewYouTube(url) {
+            const previewDiv = document.getElementById('youtubePreview');
+            const videoId = extractYouTubeId(url);
+            
+            if (videoId) {
+                previewDiv.innerHTML = `
+                    <div class="ratio ratio-16x9">
+                        <iframe src="https://www.youtube.com/embed/${videoId}" 
+                                title="YouTube video" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen>
+                        </iframe>
+                    </div>`;
+            } else {
+                previewDiv.innerHTML = url ? 
+                    '<div class="alert alert-warning">Invalid YouTube URL</div>' : 
+                    '';
+            }
+        }
+
+        // Extract YouTube video ID from URL
+        function extractYouTubeId(url) {
+            if (!url) return null;
+            
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+    </script>
 {{/section}}
 
 <div class="container mt-4">
-    
-    <h1 class="text-muted mb-4 text-center">Work Space</h1>
-  
-    <!-- Optional: A form for saving content -->
-    <form action="/writer/save" method="POST">
-        
-        <div class="card mt-4 " >
+    <h1 class="text-center mb-4">Create New Article</h1>
+
+    <form id="articleForm" method="POST" action="/writer/save" enctype="multipart/form-data">
+        <!-- Title -->
+        <div class="card mb-3">
             <div class="card-body">
-                <h4 class="card-title">Title</h4>
-                <!-- Title input -->          
-                <input type="text" class="form-control" id="article-title" name="title" placeholder="Enter the article title" required>
+                <h5 class="card-title">Title</h5>
+                <input type="text" class="form-control" name="title" required>
             </div>
         </div>
-        <div class="card mt-4 mb-4">
+
+        <!-- Abstract -->
+        <div class="card mb-3">
             <div class="card-body">
-                <h4 class="card-title">Abstract</h4>
-                <!-- Optional: Abstract input -->
-                <input type="text" class="form-control" name="abstract" placeholder="Enter the article abstract">
+                <h5 class="card-title">Abstract</h5>
+                <textarea class="form-control" name="abstract" rows="3" required></textarea>
             </div>
-        </div> 
+        </div>
 
-        <!-- Textarea for Froala Editor -->
-        <div id="froala-editor" name="editorContent"></div>
-
-        <!-- Category Dropdown -->
-        <div class="card mt-4 mb-4">
+        <!-- Featured Image -->
+        <div class="card mb-3">
             <div class="card-body">
-                <h4 class="card-title">Category</h4>
+                <h5 class="card-title">Featured Image</h5>
+                <input type="file" class="form-control" name="featured_image" accept="image/*" onchange="previewImage(this)">
+                <img id="imagePreview" class="preview-image" style="display: none;">
+            </div>
+        </div>
+
+        <!-- YouTube Video -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">YouTube Video (Optional)</h5>
+                <input type="text" 
+                       class="form-control" 
+                       name="youtube_url" 
+                       id="youtubeUrl" 
+                       placeholder="Enter YouTube video URL"
+                       onchange="previewYouTube(this.value)">
+                <div id="youtubePreview" class="mt-3"></div>
+            </div>
+        </div>
+
+        <!-- Content Editor -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Content</h5>
+                <textarea id="editorContent" name="content"></textarea>
+            </div>
+        </div>
+
+        <!-- Category Selection -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Category</h5>
                 <select class="form-control" name="category_id" required>
-                    <option value="" disabled selected>Select a category</option>
+                    <option value="">Select a category</option>
                     {{#each categories}}
                         <option value="{{this.id}}">{{this.name}}</option>
                     {{/each}}
@@ -55,19 +208,20 @@
             </div>
         </div>
 
-        <!-- Premium Checkbox -->
-        <div class="card mt-4 mb-4 border-primary">
+        <!-- Premium Option -->
+        <div class="card mb-3">
             <div class="card-body">
-                <h4 class="card-title text-warning">Premium Article</h4>
+                <h5 class="card-title">Article Type</h5>
                 <div class="form-check">
-                    <input type="checkbox" class="form-check-input" id="premium" name="premium" value="true">
-                    <label class="form-check-label" for="premium">Mark as premium</label>
+                    <input type="checkbox" class="form-check-input" id="isPremium" name="is_premium" value="true">
+                    <label class="form-check-label" for="isPremium">Mark as Premium Article</label>
                 </div>
-                <small class="form-text text-muted">Selecting this option will mark the article as premium and highlight it on the platform.</small>
             </div>
         </div>
 
-        <button id="save-button" type="button" class="btn btn-outline-primary btn-lg">Save Content</button>
+        <!-- Submit Button -->
+        <div class="text-center mb-4">
+            <button type="submit" class="btn btn-primary btn-lg">Save Article</button>
+        </div>
     </form>
-
 </div>

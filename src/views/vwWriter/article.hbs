@@ -1,0 +1,121 @@
+{{#section 'css'}}
+<style>
+    .article-content {
+        font-family: 'Georgia', serif;
+        line-height: 1.6;
+    }
+
+    .article-meta {
+        color: #666;
+        font-size: 0.9em;
+    }
+
+    .featured-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+
+    .youtube-container {
+        position: relative;
+        padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+        height: 0;
+        overflow: hidden;
+        max-width: 100%;
+        margin: 20px 0;
+    }
+
+    .youtube-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .badge-premium {
+        background-color: #ffd700;
+        color: #000;
+    }
+
+    .badge-status {
+        text-transform: capitalize;
+    }
+</style>
+{{/section}}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header with actions -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <a href="/writer/view" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Articles
+                </a>
+                <div class="btn-group">
+                    <a href="/writer/edit/{{article.id}}" class="btn btn-primary">
+                        <i class="bi bi-pencil"></i> Edit Article
+                    </a>
+                </div>
+            </div>
+
+            <!-- Article content -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <!-- Title and meta information -->
+                    <h1 class="mb-3">{{article.title}}</h1>
+                    <div class="article-meta mb-4">
+                        <div class="d-flex gap-3 mb-2">
+                            <span><i class="bi bi-calendar3"></i> {{article.formatted_date}}</span>
+                            <span><i class="bi bi-folder"></i> {{article.category_name}}</span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            {{#if article.is_premium}}
+                                <span class="badge badge-premium">
+                                    <i class="bi bi-star-fill"></i> Premium
+                                </span>
+                            {{/if}}
+                            <span class="badge bg-{{#if (eq article.status 'published')}}success
+                                        {{else if (eq article.status 'draft')}}warning
+                                        {{else}}secondary{{/if}} badge-status">
+                                {{article.status}}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Abstract -->
+                    {{#if article.abstract}}
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Abstract</h5>
+                                <p class="card-text">{{article.abstract}}</p>
+                            </div>
+                        </div>
+                    {{/if}}
+
+                    <!-- Featured Image -->
+                    {{#if article.featured_image}}
+                        <img src="{{article.featured_image}}" class="featured-image" alt="Featured image">
+                    {{/if}}
+
+                    <!-- YouTube Video -->
+                    {{#if article.youtube_embed}}
+                        <div class="youtube-container">
+                            <iframe src="{{article.youtube_embed}}" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen>
+                            </iframe>
+                        </div>
+                    {{/if}}
+
+                    <!-- Main Content -->
+                    <div class="article-content mt-4">
+                        {{{article.content}}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

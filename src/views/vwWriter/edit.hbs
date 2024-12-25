@@ -1,66 +1,193 @@
-
 {{#section 'css'}}
- <!-- Include Froala CSS -->
-    <link rel="stylesheet" href="/froala/css/froala_editor.pkgd.min.css">
-    <link rel="stylesheet" href="/froala/css/froala_style.min.css">
-    <!-- Include jQuery (required by Froala Editor) -->
-    {{!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
-    
-
+    <!-- Include Froala CSS -->
+    <link href='https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css' rel='stylesheet'>
+    <link href='https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_style.min.css' rel='stylesheet'>
+    <style>
+        .preview-image {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 10px;
+        }
+        .youtube-preview {
+            margin-top: 10px;
+            width: 100%;
+            max-width: 560px;
+        }
+    </style>
 {{/section}}
 
 {{#section 'js'}}
- <!-- Include your custom JS file to initialize the Froala editor -->
- <script type="text/javascript" src="/froala/js/froala_editor.pkgd.min.js"></script>
-    <script type="text/javascript"src="/js/froala.edi.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/froala-editor@latest/js/froala_editor.pkgd.min.js'></script>
+<script>
+    let editor;
+    const articleId = document.getElementById('editForm').dataset.articleId;
 
-    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Khởi tạo Froala Editor
+        editor = new FroalaEditor('#editorContent', {
+            height: 300,
+            placeholderText: 'Start writing your article...',
+            events: {
+                'initialized': function() {
+                    console.log('Editor initialized');
+                    this.html.set('{{{article.content}}}');
+                }
+            }
+        });
+    });
+
+    // Xử lý form submission
+    document.getElementById('editForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        try {
+            if (!editor) {
+                throw new Error('Editor not initialized');
+            }
+
+            const content = editor.html.get();
+            console.log('Editor content:', content);
+
+            // Kiểm tra các trường bắt buộc
+            const title = document.querySelector('input[name="title"]').value;
+            if (!title || !content) {
+                throw new Error('Title and content are required');
+            }
+
+            // Gửi request với fetch
+            const response = await fetch(`/writer/edit/${articleId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: title,
+                    abstract: document.querySelector('textarea[name="abstract"]').value,
+                    content: content,
+                    category_id: document.querySelector('select[name="category_id"]').value,
+                    is_premium: document.querySelector('input[name="is_premium"]').checked,
+                    youtube_url: document.querySelector('input[name="youtube_url"]')?.value || null
+                })
+            });
+
+            // Log để debug
+            console.log('Request sent with data:', {
+                title: title,
+                content: content,
+                category_id: document.querySelector('select[name="category_id"]').value
+            });
+
+            const result = await response.json();
+            console.log('Server response:', result);
+            
+            if (!result.success) {
+                throw new Error(result.message || 'Failed to update article');
+            }
+
+            // Xử lý featured image riêng nếu có
+            const imageFile = document.querySelector('input[name="featured_image"]')?.files[0];
+            if (imageFile) {
+                const imageFormData = new FormData();
+                imageFormData.append('featured_image', imageFile);
+                
+                await fetch(`/writer/edit/${articleId}/image`, {
+                    method: 'POST',
+                    body: imageFormData
+                });
+            }
+
+            alert('Article updated successfully!');
+            window.location.href = '/writer/view';
+        } catch (error) {
+            console.error('Error:', error);
+            alert(error.message || 'Failed to update article');
+        }
+    });
+</script>
 {{/section}}
 
-
 <div class="container mt-4">
-    <h1 class="text-muted mb-4 text-center">Edit Article</h1>
-    <form id="edit-article-form" action="/writer/edit" method="POST">
-        <div class="card mt-4">
+    <h1>Edit Article</h1>
+    <form id="editForm" data-article-id="{{article.id}}">
+        <!-- Title -->
+        <div class="card mb-3">
             <div class="card-body">
-                <h4 class="card-title">Title</h4>
-                    <input class="visually-hidden" name="id" value="{{article.id}}"></input>                <!-- Insert the article title into the input field -->
-                <input type="text" class="form-control" id="article-title" name="title" value="{{article.title}}" placeholder="Enter the article title" required>
+                <h5 class="card-title">Title</h5>
+                <input type="text" class="form-control" name="title" value="{{article.title}}" required>
             </div>
         </div>
 
-        <div class="card mt-4 mb-4">
+        <!-- Abstract -->
+        <div class="card mb-3">
             <div class="card-body">
-                <h4 class="card-title">Abstract</h4>
-                <!-- Insert the article abstract into the input field -->
-                <input type="text" class="form-control" name="abstract" value="{{article.abstract}}" placeholder="Enter the article abstract">
+                <h5 class="card-title">Abstract</h5>
+                <textarea class="form-control" name="abstract" rows="3" required>{{article.abstract}}</textarea>
             </div>
         </div>
 
-        <div id="froala-editor" name="editorContent">{{{article.content}}}</div> <!-- Populate the Froala editor with article content -->
-
-        <!-- Display category as text (category_id not editable) -->
-        <div class="card mt-4 mb-4">
+        <!-- Featured Image -->
+        <div class="card mb-3">
             <div class="card-body">
-                <h4 class="card-title">Category</h4>
-                <input type="hidden" name="category_id" value="{{article.category_id}} ">
-                <!-- Display category name as text -->
-                <p class="form-control-plaintext">{{article.category_name}}</p>
+                <h5 class="card-title">Featured Image</h5>
+                {{#if article.featured_image}}
+                    <img src="{{article.featured_image}}" class="img-fluid mb-2" style="max-width: 200px;">
+                {{/if}}
+                <input type="file" class="form-control" name="featured_image" accept="image/*">
             </div>
         </div>
 
-        <div class="card mt-4 mb-4 border-primary">
+        <!-- YouTube Video -->
+        <div class="card mb-3">
             <div class="card-body">
-                <h4 class="card-title text-warning">Premium Article</h4>
+                <h5 class="card-title">YouTube Video (Optional)</h5>
+                <input type="text" 
+                       class="form-control" 
+                       name="youtube_url" 
+                       value="{{article.youtube_embed}}"
+                       placeholder="Enter YouTube video URL">
+            </div>
+        </div>
+
+        <!-- Content Editor -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Content</h5>
+                <textarea id="editorContent" name="content">{{{article.content}}}</textarea>
+            </div>
+        </div>
+
+        <!-- Category Selection -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Category</h5>
+                <select class="form-control" name="category_id" required>
+                    {{#each categories}}
+                        <option value="{{this.id}}" {{#if (eq this.id ../article.category_id)}}selected{{/if}}>
+                            {{this.name}}
+                        </option>
+                    {{/each}}
+                </select>
+            </div>
+        </div>
+
+        <!-- Premium Option -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Article Type</h5>
                 <div class="form-check">
-                    <!-- Check if the article is premium -->
-                    <input type="checkbox" class="form-check-input" id="premium" name="premium" value="true" {{#if article.is_premium}}checked{{/if}}>
-                    <label class="form-check-label" for="premium">Mark as premium</label>
+                    <input type="checkbox" 
+                           class="form-check-input" 
+                           id="isPremium" 
+                           name="is_premium" 
+                           {{#if article.is_premium}}checked{{/if}}>
+                    <label class="form-check-label" for="isPremium">Mark as Premium Article</label>
                 </div>
-                <small class="form-text text-muted">Selecting this option will mark the article as premium and highlight it on the platform.</small>
             </div>
         </div>
 
-        <button id="edit-button" type="button" class="btn btn-outline-primary btn-lg">Save Content</button>
+        <!-- Submit Button -->
+        <div class="text-center mb-4">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
     </form>
 </div>
