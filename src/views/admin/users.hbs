@@ -36,10 +36,18 @@
                             </select>
                         </td>
                         <td>
-                            {{#if this.premium_start_date}}
-                            <span class="badge bg-success">Premium</span>
+                            {{#if this.premium_status}}
+                            {{#if (eq this.premium_status "approved")}}
+                            <span class="text-success">
+                                <i class="fas fa-star"></i> Premium
+                            </span>
                             {{else}}
-                            <span class="badge bg-secondary">Free</span>
+                            <span class="text-warning">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
+                            {{/if}}
+                            {{else}}
+                            <span class="text-secondary">Free</span>
                             {{/if}}
                         </td>
                         <td>{{formatDate this.created_at}}</td>
@@ -123,7 +131,39 @@
         </div>
     </div>
 </div>
-
+<div class="card mt-4"></div>
+<div class="card-header">
+    <h5>Pending Premium Requests</h5>
+</div>
+<div class="card-body">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Request Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each pendingPremiumRequests}}
+                <tr>
+                    <td>{{this.full_name}}</td>
+                    <td>{{this.email}}</td>
+                    <td>{{formatDate this.created_at}}</td>
+                    <td>
+                        <button class="btn btn-success btn-sm" onclick="approvePremiumRequest('{{this.id}}')">
+                            Approve
+                        </button>
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
 <script>
     // Handle role change
     document.querySelectorAll('.role-select').forEach(select => {
@@ -238,4 +278,5 @@
             alert('Error rejecting draft');
         }
     }
+
 </script>

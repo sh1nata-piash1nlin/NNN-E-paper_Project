@@ -42,4 +42,11 @@ router.put('/users/:id/role', adminController.updateUserRole);
 router.delete('/users/:id', adminController.deleteUser);
 router.put('/drafts/:id/approve', adminController.approveDraft);
 router.put('/drafts/:id/reject', adminController.rejectDraft);
+
+//editor
+router.get('/editor-categories', adminController.getEditorCategories);
+router.post('/editor-categories/assign', adminController.assignEditorToCategory);
+router.delete('/editor-categories/remove/:editorId/:categoryId', adminController.removeEditorFromCategory);
+// Thêm route mới cho việc approve premium request
+router.post('/premium-requests/:requestId/approve', adminController.approvePremiumRequest);
 module.exports = router;
