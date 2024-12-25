@@ -97,4 +97,34 @@ CREATE TABLE Editor_Categories (
     FOREIGN KEY (category_id) REFERENCES Categories(id)
 );
 
+CREATE TABLE editor_history (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    article_id INT NOT NULL,
+    article_name VARCHAR(255) NOT NULL,
+    status ENUM('Accepted', 'Rejected') NOT NULL,
+    rejection_reason TEXT,
+    action_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (article_id) REFERENCES Articles(id)
+);
+
+CREATE TABLE draft (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,       
+    articles_id INT(11) NOT NULL,              
+    date DATETIME NOT NULL,                      
+    reject_reason TEXT                          
+);
+ALTER TABLE draft
+ADD CONSTRAINT fk_articles FOREIGN KEY (articles_id) REFERENCES articles(id);
+
+CREATE TABLE premium (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    card_number VARCHAR(16) NOT NULL,
+    cvv VARCHAR(3) NOT NULL,
+    start_day TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT unique_user_id UNIQUE (user_id)
+);
+
+
 ALTER TABLE premium ADD COLUMN status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending';
