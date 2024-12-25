@@ -183,28 +183,44 @@
         e.preventDefault();
 
         const formData = new FormData(this);
-
+        
         // Lấy nội dung từ TinyMCE
-        formData.set('content', tinymce.get('articleContent').getContent());
-
+        formData.set('abstract', tinymce.get('addArticleAbstract').getContent());
+        formData.set('content', tinymce.get('addArticleContent').getContent());
+        
+        // Lấy file từ input
+        const featuredImageInput = document.querySelector('input[name="featured_image"]');
+        if (featuredImageInput.files[0]) {
+            formData.set('featured_image', featuredImageInput.files[0]);
+        }
+        
         try {
             const response = await fetch('/admin/articles', {
                 method: 'POST',
-                body: formData
+                body: formData // Không cần set Content-Type, FormData sẽ tự set
             });
+
             if (response.ok) {
-                // Thành công
-                alert('Article added successfully!');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addArticleModal'));
+                modal.hide();
+                alert('Article published successfully!');
                 window.location.reload();
             } else {
-                // Xử lý lỗi
                 const error = await response.json();
-                alert(error.message || 'Error adding article');
+                alert(error.message || 'Error publishing article');
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error adding article');
+            alert('Error publishing article');
         }
+    });
+
+    // Reset form và preview khi đóng modal
+    document.getElementById('addArticleModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('articleForm').reset();
+        document.getElementById('thumbnailPreview').innerHTML = '';
+        tinymce.get('addArticleContent').setContent('');
+        tinymce.get('addArticleAbstract').setContent('');
     });
 
     // Preview thumbnail khi chọn file
@@ -221,7 +237,47 @@
         }
     });
 
-    // Reset form và preview khi đóng modal
+    // Edit article function
+    async function editArticle(id) {
+        try {
+            const response = await fetch(`/admin/articles/${id}`);
+            const article = await response.json();
+            // Populate form trong modal edit
+            document.getElementById('articleTitle').value = article.title;
+            tinymce.get('articleContent').setContent(article.content || '');
+            tinymce.get('articleAbstract').setContent(article.abstract || '');
+            document.getElementById('articleCategory').value = article.category_id;
+            document.getElementById('articleStatus').value = article.status;
+            if (article.featured_image) {
+                document.getElementById('thumbnailPreview').innerHTML =
+                    `<img src="${article.featured_image}" class="img-fluid">`;
+            }
+            // Show modal edit
+            const modal = new bootstrap.Modal(document.getElementById('articleModal'));
+            modal.show();
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error loading article');
+        }
+    }
+    // Delete article function
+    async function deleteArticle(id) {
+        if (confirm('Are you sure you want to delete this article?')) {
+            try {
+                const response = await fetch(`/admin/articles/${id}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    throw new Error('Failed to delete article');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error deleting article');
+            }
+        }
+    }
 
 </script>
 
