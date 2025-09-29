@@ -25,4 +25,3 @@ CREATE TABLE premium (
 # Xem router.get('/premium') và router.post('/premium') trong guest.route.js for more details.
 # Trong quá trình apply thành công subscriber: 
 + luu vao table users role: subscriber (SAU KHI APPLY XONG)
-+ làm thêm phần avatar của tk đăng kí premium đẹp lên kiểu sẽ có viền vàng và cái logo vương miện [THỰC RA T CÓ LÀM TRONG `main.hbs` rồi mà nó k hiện =))]  
